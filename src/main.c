@@ -112,6 +112,7 @@ static void argv_parse(int argc, char **argv) {
   char *export = NULL;
   char *import = NULL;
   char *dir = NULL;
+  char* endptr = NULL;
 
   static yopt_opt_t opts[] = {
     { 'h', 0, "-h,-?" },
@@ -127,6 +128,8 @@ static void argv_parse(int argc, char **argv) {
     {  1,  1, "--exclude" },
     { 'X', 1, "-X,--exclude-from" },
     { 'C', 0, "--exclude-caches" },
+    { 'd', 1, "-d,--min-depth" },
+    { 'm', 1, "-m,--max-depth" },
     {0,0,NULL}
   };
 
@@ -149,6 +152,8 @@ static void argv_parse(int argc, char **argv) {
       printf("  --exclude PATTERN          Exclude files that match PATTERN\n");
       printf("  -X, --exclude-from FILE    Exclude files that match any pattern in FILE\n");
       printf("  --exclude-caches           Exclude directories containing CACHEDIR.TAG\n");
+      printf("  -d, --min-depth DEPTH      Minimum directory depth before counting\n");
+      printf("  -m, --max-depth DEPTH      Maximum directory depth to traverse\n");
       exit(0);
     case 'q': update_delay = 2000; break;
     case 'v':
@@ -170,6 +175,20 @@ static void argv_parse(int argc, char **argv) {
       break;
     case 'C':
       cachedir_tags = 1;
+      break;
+    case 'd':
+      dir_scan_min_depth = strtol(val, &endptr, 10);
+      if (endptr == NULL || endptr == val || endptr[0] != '\0') {
+        printf("Invalid min depth: %s\n", val);
+        exit(1);
+      }
+      break;
+    case 'm':
+      dir_scan_max_depth = strtol(val, &endptr, 10);
+      if (endptr == NULL || endptr == val || endptr[0] != '\0') {
+        printf("Invalid max depth: %s\n", val);
+        exit(1);
+      }
       break;
     case -2:
       printf("ncdu: %s.\n", val);

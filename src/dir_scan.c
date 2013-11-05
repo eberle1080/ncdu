@@ -42,6 +42,8 @@
 
 
 int dir_scan_smfs; /* Stay on the same filesystem */
+int dir_scan_min_depth = -1; /* The minimum depth */
+int dir_scan_max_depth = -1; /* The maximum depth */
 
 static uint64_t curdev;   /* current device we're scanning on */
 

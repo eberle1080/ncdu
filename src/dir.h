@@ -106,6 +106,9 @@ int (*dir_process)();
 
 /* Scanning a live directory */
 extern int dir_scan_smfs;
+extern int dir_scan_min_depth;
+extern int dir_scan_max_depth;
+
 void dir_scan_init(const char *path);
 
 /* Importing a file */

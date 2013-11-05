@@ -215,3 +215,10 @@ $RECYCLE.BIN/
 
 ### Custom ###
 /config.h.in
+/config.h
+/config.status
+/Makefile
+/ncdu
+/ncdu.1
+/src/.deps/
+/src/.dirstamp
