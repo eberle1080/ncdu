@@ -116,11 +116,11 @@ static char *dir_read(int *err) {
 }
 
 
-static int dir_walk(char *);
+static int dir_walk(char*, int);
 
 
 /* Tries to recurse into the given directory item */
-static int dir_scan_recurse(struct dir *d) {
+static int dir_scan_recurse(struct dir *d, int cur_depth) {
   int fail = 0;
   char *dir;
 
@@ -156,7 +156,7 @@ static int dir_scan_recurse(struct dir *d) {
     dir_seterr("Output error: %s", strerror(errno));
     return 1;
   }
-  fail = dir_walk(dir);
+  fail = dir_walk(dir, cur_depth + 1);
   if(dir_output.item(NULL)) {
     dir_seterr("Output error: %s", strerror(errno));
     return 1;
@@ -175,7 +175,7 @@ static int dir_scan_recurse(struct dir *d) {
 /* Scans and adds a single item. Recurses into dir_walk() again if this is a
  * directory. Assumes we're chdir'ed in the directory in which this item
  * resides, i.e. d->name is a valid relative path to the item. */
-static int dir_scan_item(struct dir *d) {
+static int dir_scan_item(struct dir *d, int cur_depth) {
   struct stat st;
   int fail = 0;
 
@@ -204,9 +204,19 @@ static int dir_scan_item(struct dir *d) {
       d->size = d->asize = 0;
     }
 
+  if(!(d->flags & FF_DIR) && dir_scan_min_depth >= 0 && cur_depth < dir_scan_min_depth) {
+    d->size = d->asize = 0;
+    d->flags |= FF_EXL;
+  }
+
+  if(dir_scan_max_depth >= 0 && cur_depth > dir_scan_max_depth) {
+    d->size = d->asize = 0;
+    d->flags |= FF_EXL;
+  }
+
   /* Recurse into the dir or output the item */
   if(d->flags & FF_DIR && !(d->flags & (FF_ERR|FF_EXL|FF_OTHFS)))
-    fail = dir_scan_recurse(d);
+    fail = dir_scan_recurse(d, cur_depth);
   else if(d->flags & FF_DIR) {
     if(dir_output.item(d) || dir_output.item(NULL)) {
       dir_seterr("Output error: %s", strerror(errno));
@@ -224,7 +234,7 @@ static int dir_scan_item(struct dir *d) {
 /* Walks through the directory that we're currently chdir'ed to. *dir contains
  * the filenames as returned by dir_read(), and will be freed automatically by
  * this function. */
-static int dir_walk(char *dir) {
+static int dir_walk(char *dir, int cur_depth) {
   struct dir *d;
   int fail = 0;
   char *cur;
@@ -233,7 +243,7 @@ static int dir_walk(char *dir) {
   for(cur=dir; !fail&&cur&&*cur; cur+=strlen(cur)+1) {
     dir_curpath_enter(cur);
     d = dir_createstruct(cur);
-    fail = dir_scan_item(d);
+    fail = dir_scan_item(d, cur_depth);
     dir_curpath_leave();
   }
 
@@ -286,7 +296,7 @@ static int process() {
       fail = 1;
     }
     if(!fail)
-      fail = dir_walk(dir);
+      fail = dir_walk(dir, 0);
     if(!fail && dir_output.item(NULL)) {
       dir_seterr("Output error: %s", strerror(errno));
       fail = 1;
