@@ -212,3 +212,6 @@ $RECYCLE.BIN/
 
 # Mac crap
 .DS_Store
+
+### Custom ###
+/config.h.in
