@@ -1,39 +1,6 @@
-ncdu 1.10
-=========
+/* ncdu - NCurses Disk Usage
 
-DESCRIPTION
-
-  ncdu (NCurses Disk Usage) is a curses-based version of
-  the well-known 'du', and provides a fast way to see what
-  directories are using your disk space.
-
-
-REQUIREMENTS
-
-  In order to compile and install ncdu, you need to have
-  at least...
-
-  - a POSIX-compliant operating system (Linux, BSD, etc)
-  - curses libraries and header files
-
-
-INSTALL
-
-  The usual:
-
-    ./configure --prefix=/usr
-    make
-    make install
-
-  If you're building directly from the git repository, make sure you have perl
-  (or rather, pod2man), pkg-config and GNU autoconf/automake installed, then
-  run 'autoreconf -i', and you're ready to continue with the usual ./configure
-  and make route.
-
-
-COPYING
-
-  Copyright (c) 2007-2013 Yoran Heling
+  Copyright (c) 2007-2012 Yoran Heling
 
   Permission is hereby granted, free of charge, to any person obtaining
   a copy of this software and associated documentation files (the
@@ -53,3 +20,29 @@ COPYING
   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
   SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+*/
+/*
+ path.c reimplements realpath() and chdir(), both functions accept
+ arbitrary long path names not limited by PATH_MAX.
+
+ Caveats/bugs:
+  - path_real uses chdir(), so it's not thread safe
+  - Process requires +x access for all directory components
+  - Potentionally slow
+  - Doesn't check return value of malloc() and realloc()
+  - path_real doesn't check for the existance of the last component
+  - cwd is unreliable after path_real
+*/
+
+#ifndef _path_h
+#define _path_h
+
+/* path_real reimplements realpath(). The returned string is allocated
+   by malloc() and should be manually free()d by the programmer. */
+extern char *path_real(const char *);
+
+/* works exactly the same as chdir() */
+extern int   path_chdir(const char *);
+
+#endif
